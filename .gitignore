@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+.env
+.idea/
+*.pyc
+.ruff_cache/
+add_books.py
+todo

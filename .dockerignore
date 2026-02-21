@@ -1,0 +1,6 @@
+.venv
+.gitignore
+.env
+Dockerfile
+add_books.py
+todo

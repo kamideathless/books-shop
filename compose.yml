@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres
+    container_name: psgr
+    environment:
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_DB=${DATABASE_NAME}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/
+    networks:
+      - dbnet
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    ports:
+      - "127.0.0.1:8080:8080"
+    networks:
+      dbnet:
+    depends_on:
+      - postgres
+
+  app:
+    build: .
+    container_name: app
+    networks:
+      dbnet:
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - .:/books
+    env_file:
+      - .env
+
+networks:
+  dbnet:
+    driver: bridge
+
+volumes:
+  postgres-data:
