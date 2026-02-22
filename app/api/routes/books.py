@@ -18,6 +18,7 @@ async def get_books(
     db_books = await service.get_all_books()
     return [BookResponse.model_validate(book) for book in db_books]
 
+
 @router.post("/", tags=books_tag, name="Добавить книгу")
 async def create_book(
     body: BookCreate,
@@ -27,10 +28,14 @@ async def create_book(
     book = await service.create_book(body)
     return BookResponse.model_validate(book)
 
+
 @router.get("/search", tags=books_tag, name="Поиск книги по названию или автору")
-async def search_book_by_title_author(query: str, service: BooksService = Depends(get_books_service)) -> list[BookResponse]:
+async def search_book_by_title_author(
+    query: str, service: BooksService = Depends(get_books_service)
+) -> list[BookResponse]:
     books = await service.search_books(query)
     return [BookResponse.model_validate(book) for book in books]
+
 
 @router.get("/{book_id}", tags=books_tag, name="Получить книгу из базы данных")
 async def get_book(
@@ -52,7 +57,8 @@ async def delete_book(
 
 @router.patch("/{book_id}", tags=books_tag, name="Обновить всю информацию по книге")
 async def update_book(
-    book_id: int, body: BookUpdate,
+    book_id: int,
+    body: BookUpdate,
     service: BooksService = Depends(get_books_service),
     _: None = Depends(require_admin),
 ) -> BookResponse:
@@ -64,7 +70,7 @@ async def update_book(
 async def get_reviews(
     book_id: int, service: BooksService = Depends(get_books_service)
 ) -> list[ReviewResponse]:
-    reviews = await service.get_review_by_book_id(book_id)
+    reviews = await service.get_reviews_by_book_id(book_id)
     return [ReviewResponse.model_validate(review) for review in reviews]
 
 
