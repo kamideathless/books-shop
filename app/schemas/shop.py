@@ -15,6 +15,7 @@ class ShopItemCreate(ShopItemBase):
 class ShopItemUpdate(ShopItemBase):
     pass
 
+
 class ShopItemResponse(ShopItemBase):
     id: int
     book: BookResponse

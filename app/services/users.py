@@ -25,7 +25,6 @@ from app.utils.utils import (
 class UserService(BaseRepository):
     model = User
 
-
     async def get_all_users(self) -> list[User]:
         result = await self.session.execute(select(User).order_by(User.id))
         return list(result.scalars().all())

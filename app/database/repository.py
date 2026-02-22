@@ -11,7 +11,9 @@ class BaseRepository:
         self.session = session
 
     async def _get_or_raise(self, id: int):
-        result = await self.session.execute(select(self.model).where(self.model.id == id))
+        result = await self.session.execute(
+            select(self.model).where(self.model.id == id)
+        )
         item = result.scalar_one_or_none()
         if item is None:
             raise NotFoundError(f"{self.model.__name__} {id} не найдена")

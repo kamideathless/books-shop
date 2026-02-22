@@ -18,4 +18,5 @@ class Settings(BaseSettings):
     def DATABASE_URL(self) -> str:
         return f"{self.DATABASE_SCHEMA}://{self.DATABASE_USER}:{self.DATABASE_PASSWORD}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}"
 
+
 settings = Settings()

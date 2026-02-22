@@ -21,7 +21,10 @@ class ShopService(BaseRepository):
     async def get_shop_items(self, params: PaginatedParams) -> PaginatedResponse:
         stmt = select(ShopItem).options(joinedload(ShopItem.book))
         paginated_items = await paginate(
-            session=self.session, stmt=stmt, page=params.page, page_size=params.page_size
+            session=self.session,
+            stmt=stmt,
+            page=params.page,
+            page_size=params.page_size,
         )
         return paginated_items
 
@@ -38,13 +41,16 @@ class ShopService(BaseRepository):
             result = await self.session.execute(
                 select(ShopItem)
                 .options(joinedload(ShopItem.book))
-                .where(ShopItem.id == new_shop_item.id))
+                .where(ShopItem.id == new_shop_item.id)
+            )
             return result.scalar_one()
         except IntegrityError:
             await self.session.rollback()
             raise AlreadyExistsError(f"Книга {shop_item.book_id} уже есть в магазине")
 
-    async def update_shop_item(self, shop_item_id: int, shop_item: ShopItemUpdate) -> ShopItem:
+    async def update_shop_item(
+        self, shop_item_id: int, shop_item: ShopItemUpdate
+    ) -> ShopItem:
         item = await self.get_item_by_id(shop_item_id)
         for field, value in shop_item.model_dump(exclude_none=True).items():
             setattr(item, field, value)

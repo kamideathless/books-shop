@@ -2,7 +2,8 @@ from typing import Generic, List, TypeVar
 
 from pydantic import BaseModel, field_validator, Field
 
-T = TypeVar('T')
+T = TypeVar("T")
+
 
 class PaginatedParams(BaseModel):
     page: int = Field(ge=1, default=1)
@@ -26,6 +27,7 @@ class PaginatedResponse(BaseModel, Generic[T]):
 
     class Config:
         from_attributes = True
+
 
 class SearchParams(PaginatedParams):
     query: str = Field(min_length=1, max_length=128)

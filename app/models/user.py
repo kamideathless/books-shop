@@ -4,9 +4,11 @@ from sqlalchemy import String, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.base import Base
 
+
 class UserRole(PyEnum):
     ADMIN = "admin"
     USER = "user"
+
 
 class User(Base):
     __tablename__ = "users"
@@ -15,7 +17,9 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(32), unique=True)
     password: Mapped[str] = mapped_column(String(32))
     hashed_password: Mapped[str] = mapped_column(String(128))
-    role: Mapped[UserRole] = mapped_column(Enum(UserRole), default=UserRole.USER, nullable=False)
+    role: Mapped[UserRole] = mapped_column(
+        Enum(UserRole), default=UserRole.USER, nullable=False
+    )
     name: Mapped[str] = mapped_column(String(56))
     age: Mapped[int | None] = mapped_column()
 

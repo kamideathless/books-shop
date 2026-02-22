@@ -11,6 +11,7 @@ from app.services.exceptions import TokenExpired, InvalidToken, NotFoundError
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/login/")
 
+
 def create_jwt_token(payload: JWTPayload) -> str:
     now = datetime.now(timezone.utc)
     payload.iat = now.timestamp()
@@ -57,6 +58,7 @@ def verify_password(password: str, hashed_password: str) -> bool:
     except ValueError:
         return False
 
+
 async def paginate(
     session: AsyncSession,
     stmt,
@@ -69,7 +71,9 @@ async def paginate(
     total_pages = (total + page_size - 1) // page_size if total > 0 else 0
 
     if page > total_pages > 0:
-        raise NotFoundError(f"Страница {page} не существует, всего страниц: {total_pages}")
+        raise NotFoundError(
+            f"Страница {page} не существует, всего страниц: {total_pages}"
+        )
 
     offset = (page - 1) * page_size
     result = await session.execute(stmt.offset(offset).limit(page_size))
