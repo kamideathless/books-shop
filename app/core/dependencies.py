@@ -1,6 +1,5 @@
 from typing import AsyncGenerator
-
-from fastapi import Depends, HTTPException
+from fastapi import Depends, Request, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.database import session_fabric
@@ -15,17 +14,20 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def get_current_user(
-    token: str = Depends(oauth2_scheme), session: AsyncSession = Depends(get_db)
+    request: Request,
+    db: AsyncSession = Depends(get_db)
 ) -> User:
+    token = request.cookies.get("access_token")
+    if token is None:
+        raise HTTPException(status_code=401, detail="Не авторизован")
     payload = decode_jwt_token(token)
     if payload["token_type"] != "access":
         raise HTTPException(status_code=401, detail="Неправильный тип токена")
-    stmt = select(User).where(User.id == int(payload["uid"]))
-    res = await session.execute(stmt)
-    current_user = res.scalar_one_or_none()
-    if current_user is None:
+    result = await db.execute(select(User).where(User.id == int(payload["uid"])))
+    user = result.scalar_one_or_none()
+    if user is None:
         raise HTTPException(status_code=401, detail="Пользователь не найден")
-    return current_user
+    return user
 
 
 async def require_admin(current_user: User = Depends(get_current_user)):

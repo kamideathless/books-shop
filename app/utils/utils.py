@@ -64,22 +64,32 @@ async def paginate(
     stmt,
     page: int,
     page_size: int,
+    count_stmt=None,
+    row_mapper=None,
+    use_scalars: bool = False,
 ) -> PaginatedResponse:
-    count_query = select(func.count()).select_from(stmt.subquery())
-    result = await session.execute(count_query)
-    total = result.scalar()
+    if count_stmt is None:
+        count_stmt = select(func.count()).select_from(stmt.subquery())
+
+    count_result = await session.execute(count_stmt)
+    total = count_result.scalar()
     total_pages = (total + page_size - 1) // page_size if total > 0 else 0
 
     if page > total_pages > 0:
-        raise NotFoundError(
-            f"Страница {page} не существует, всего страниц: {total_pages}"
-        )
+        raise NotFoundError(f"Страница {page} не существует")
 
     offset = (page - 1) * page_size
     result = await session.execute(stmt.offset(offset).limit(page_size))
-    items = result.scalars().all()
+
+    if row_mapper:
+        rows = result.scalars().all() if use_scalars else result.all()
+        items = [row_mapper(row) for row in rows]
+
+    if not items:
+        raise NotFoundError("Записи не найдены")
+
     return PaginatedResponse(
-        items=list(items),
+        items=items,
         total=total,
         page=page,
         page_size=page_size,

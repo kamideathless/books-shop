@@ -1,10 +1,22 @@
+import os
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from app.api.routes import books_router, users_router, shop_router
+from app.core.cache import RedisCache
 from app.core.exception_handlers import register_exception_handlers
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    cache = RedisCache()
+    redis = await cache.init()
+    yield
+    await redis.close()
+
+
+
+app = FastAPI(lifespan=lifespan)
 app.include_router(books_router)
 app.include_router(users_router)
 app.include_router(shop_router)

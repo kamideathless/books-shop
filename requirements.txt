@@ -11,3 +11,5 @@ asyncpg
 python-multipart
 pydantic_settings
 httpx
+redis
+fastapi-cache2[redis]

@@ -62,7 +62,7 @@ class UserService(BaseRepository):
     @staticmethod
     def refresh_access_token(body: RefreshTokenRequest) -> UserTokens:
         payload = decode_jwt_token(body.refresh_token)
-        if payload["type"] != "refresh":
+        if payload["token_type"] != "refresh":
             raise WrongTokenType("Неправильный тип токена")
         new_access_token = create_access_token(JWTPayload(uid=int(payload["uid"])))
         return UserTokens(

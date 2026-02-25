@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     DATABASE_PORT: int
     DATABASE_SCHEMA: str
     DATABASE_NAME: str
+    REDIS_URL: str
 
     @property
     def DATABASE_URL(self) -> str:

@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends, Response
 from app.core.dependencies import require_admin
 from app.models.user import User
+from app.schemas.pagination import PaginatedParams, PaginatedResponse
 from app.schemas.review import ReviewResponse, ReviewCreate
 from app.services.books import BooksService, get_books_service
 from app.schemas.book import BookResponse, BookCreate, BookUpdate
 from app.core.dependencies import get_current_user
+from fastapi_cache.decorator import cache
 
 router = APIRouter(prefix="/books")
 books_tag = ["Книги"]
@@ -12,11 +14,12 @@ reviews_tag = ["Отзывы"]
 
 
 @router.get("/", tags=books_tag, name="Получить все книги")
+@cache(expire=60)
 async def get_books(
+    params: PaginatedParams = Depends(),
     service: BooksService = Depends(get_books_service),
-) -> list[BookResponse]:
-    db_books = await service.get_all_books()
-    return [BookResponse.model_validate(book) for book in db_books]
+) -> PaginatedResponse:
+    return await service.get_all_books(params.page, params.page_size)
 
 
 @router.post("/", tags=books_tag, name="Добавить книгу")
@@ -38,6 +41,7 @@ async def search_book_by_title_author(
 
 
 @router.get("/{book_id}", tags=books_tag, name="Получить книгу из базы данных")
+@cache(expire=60)
 async def get_book(
     book_id: int, service: BooksService = Depends(get_books_service)
 ) -> BookResponse:

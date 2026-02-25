@@ -7,9 +7,11 @@ from app.core.dependencies import get_db
 from app.database.repository import BaseRepository
 from app.models.book import Book
 from app.models.review import Review
-from app.schemas.book import BookCreate, BookUpdate
+from app.schemas.book import BookCreate, BookUpdate, BookResponse
+from app.schemas.pagination import PaginatedResponse
 from app.schemas.review import ReviewCreate
 from app.services.exceptions import NotFoundError, AlreadyExistsError
+from app.utils.utils import paginate
 
 
 class BooksService(BaseRepository):
@@ -30,22 +32,29 @@ class BooksService(BaseRepository):
         book.reviews_count = reviews_count
         return book
 
-    async def get_all_books(self) -> List[Book]:
-        result = await self.session.execute(
+    @staticmethod
+    def book_row_mapper(row):
+        book, avg_rating, reviews_count = row
+        book.avg_rating = round(avg_rating, 2) if avg_rating else None
+        book.reviews_count = reviews_count
+        return BookResponse.model_validate(book)
+
+    async def get_all_books(self, page: int, page_size: int) -> PaginatedResponse[BookResponse]:
+        stmt = (
             select(Book, func.avg(Review.rate), func.count(Review.id))
             .outerjoin(Review)
             .group_by(Book.id)
             .order_by(Book.id)
         )
-        rows = result.all()
-        if not rows:
-            raise NotFoundError("Книги не найдены")
-        books = []
-        for book, avg_rating, reviews_count in rows:
-            book.avg_rating = round(avg_rating, 2) if avg_rating else None
-            book.reviews_count = reviews_count
-            books.append(book)
-        return books
+        return await paginate(
+            session=self.session,
+            stmt=stmt,
+            page=page,
+            page_size=page_size,
+            count_stmt=select(func.count()).select_from(Book),
+            row_mapper=BooksService.book_row_mapper,
+            use_scalars=False
+        )
 
     async def create_book(self, body: BookCreate) -> Book:
         book = Book(**body.model_dump())
